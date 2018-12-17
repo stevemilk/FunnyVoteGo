@@ -1,0 +1,22 @@
+before_script:
+  - export GOPATH=/var/go
+  - export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+  - ORG_DIR="$GOPATH/src/github.com/hyperchain"
+  - mkdir -p $ORG_DIR
+  - GOSDK_DIR="$ORG_DIR/$CI_PROJECT_NAME"
+  - echo $ORG_DIR
+  - echo $GOSDK_DIR
+  - mkdir -p $ORG_DIR
+  - rm -rf $GOSDK_DIR
+  - ln -sfv "$(pwd -P)" "$GOSDK_DIR"
+  - cd "$GOSDK_DIR"
+
+stages:
+  - test
+
+test:
+  stage: test
+  script:
+    - pwd
+    - go env
+    - go test ./...

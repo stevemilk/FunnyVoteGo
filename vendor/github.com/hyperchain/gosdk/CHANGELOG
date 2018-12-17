@@ -1,0 +1,23 @@
+release v0.1.1  add CI and hooks
+                add go lint
+                add send transaction interface
+                add interface of transaction, node, contract function
+                format log print
+
+release v0.2.1  add interface about contract, archive, webSocket
+                uniform use of Address and Hash
+
+release v1.0.0  complete initial version
+release v1.0.1  add tcert
+                add util of Solidity compile local
+                fix bindNode out of range and unmarshal error when simulate is true
+                when use CFCA, tcert should be replaced with sdkCert and sign with sdkCert
+release v1.0.2  add MQ interface
+                update interface of node to 1.4 include delNode is replaced with deleteVP and deleteNVP
+                fix get transaction receipt error can't return
+release v1.1.0  change signature to hyperchain 1.4
+release v1.2.0  change signature to hyperchain 1.6
+release v1.2.1  fix blockNum can not use `latest`
+                fix MQ interface can't unmarshal result
+release v1.2.2  add archive interface to support hyperchain 1.6
+                add getGenesisBlock and getChainHeight interface

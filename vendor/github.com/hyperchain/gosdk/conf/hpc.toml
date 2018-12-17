@@ -1,0 +1,64 @@
+title = "GoSDK configuratoin file"
+
+namespace = "global"
+
+#发送重新连接请求间隔(/ms)
+reConnectTime = 10000
+
+[jsonRPC]
+#    nodes = ["172.16.5.2","172.16.5.2","172.16.5.2","172.16.5.2"]
+#    nodes = ["localhost","localhost","localhost","localhost"]
+    nodes = ["172.16.5.3","172.16.5.3","172.16.5.3","172.16.5.3"]
+    #nodes = ["172.16.196.130","172.16.196.130","172.16.196.130","172.16.196.130"]
+    
+    # JsonRpc connect port
+#    ports = ["9041", "9042", "9043", "9044"]
+    ports = ["8081", "8082", "8083", "8084"]
+#     ports = [9151, 9152, 9153, 9154]
+
+[webSocket]
+    # webSocket connect port
+#    ports = ["10001", "10002", "10003", "10004"]
+    ports = ["11001", "11002", "11003", "11004"]
+
+[polling]
+    #重发次数
+    resendTime = 10
+    #第一次轮训时间间隔 unit /ms
+    firstPollingInterval = 100
+    #发送一次,第一次轮训的次数
+    firstPollingTimes = 10
+    #第二次轮训时间间隔 unit /ms
+    secondPollingInterval = 1000
+    #发送一次,第二次轮训的次数
+    secondPollingTimes = 10
+
+[privacy]
+    #send Tcert during the request or not
+    sendTcert = true
+    #if sendTcert is true , you should add follow path.
+    #the paths followed are relative to conf root path
+    sdkcertPath = "certs/sdkcert.cert"
+    sdkcertPrivPath = "certs/sdkcert.priv"
+#    sdkcertPath = "certs/sdkcert_cfca.cert"
+#    sdkcertPrivPath = "certs/sdkcert_cfca.priv"
+    uniquePubPath = "certs/unique.pub"
+    uniquePrivPath = "certs/unique.priv"
+    cfca = false
+
+[security]
+    #Use Https
+    https = true
+    #If https is true, you shoule add follow properties
+    #the paths followed are relative to conf root path
+    tlsca = "certs/tls/tlsca.ca"
+    tlspeerCert = "certs/tls/tls_peer.cert"
+    tlspeerPriv = "certs/tls/tls_peer.priv"
+
+[log]
+    #设置日志输出门槛
+    #"CRITICAL","ERROR","WARNING","NOTICE","INFO","DEBUG",
+    log_level = "DEBUG"
+    #存放日志文件夹
+    log_dir = "../logs"
+
