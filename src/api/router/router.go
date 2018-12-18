@@ -2,6 +2,7 @@ package router
 
 import (
 	"FunnyVoteGo/src/api/router/middleware"
+	"FunnyVoteGo/src/api/v1"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -28,7 +29,8 @@ func Load(g *gin.Engine, mg *melody.Melody, mw ...gin.HandlerFunc) *gin.Engine {
 	}
 
 	//main router
-	//apiv1 := g.Group("/api/v1")
+	apiv1 := g.Group("/api/v1")
+	apiv1.GET("/info", v1.GetContractInfo)
 
 	return g
 }
