@@ -4,8 +4,8 @@ package vm
 type ReqInvokeCon struct {
 	ContractAddr string `json:"contract_addr"`
 	ContractCode string `json:"contract_code"`
-	MethodName   string `form:"method_name" json:"method_name" binding:"required"`
-	MethodParams string `form:"method_params" json:"method_params"`
+	MethodName   string `json:"method_name"`
+	MethodParams string `json:"method_params"`
 }
 
 //CompileResult compile result of contract

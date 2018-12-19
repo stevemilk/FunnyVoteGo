@@ -38,3 +38,19 @@ func FileToMap(f *multipart.FileHeader) (m map[string]interface{}, err error) {
 	return m, err
 
 }
+
+// FilePathToMap parse file to map
+func FilePathToMap(path string) (m map[string]interface{}, err error) {
+	fByte, err := ioutil.ReadFile(path)
+	var i interface{}
+	e := json.Unmarshal(fByte, &i)
+	if e != nil {
+
+		return m, err
+	}
+	m, ok := i.(map[string]interface{})
+	if !ok {
+		return m, fmt.Errorf("类型转换失败")
+	}
+	return m, err
+}

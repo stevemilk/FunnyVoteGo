@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/glog"
 	"github.com/hyperchain/gosdk/abi"
 	"github.com/hyperchain/gosdk/account"
@@ -19,12 +18,8 @@ import (
 )
 
 // InitKey create key by key file
-func InitKey(c *gin.Context) (*ecdsa.Key, error) {
-	f, err := c.FormFile("priv")
-	if err != nil || f == nil {
-		return nil, err
-	}
-	m, err := util.FileToMap(f)
+func InitKey() (*ecdsa.Key, error) {
+	m, err := util.FilePathToMap("./conf/key/key.json")
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +39,15 @@ func InvokeContract(param vm.ReqInvokeCon, key *ecdsa.Key) (*vm.InvokeReturn, er
 		return nil, fmt.Errorf("合约编译失败")
 	}
 
-	ABI, _ := abi.JSON(strings.NewReader(cr.Abi[0]))
+	glog.Info(len(cr.Abi))
+	glog.Info(cr.Abi)
+	abii := cr.Abi[0]
+	if cr.Abi[0] == "[]" {
+		abii = cr.Abi[1]
+	}
+	glog.Info(abii)
+	ABI, _ := abi.JSON(strings.NewReader(abii))
+	glog.Info(ABI)
 	var args []interface{}
 	if param.MethodParams == "{}" {
 		args = nil
@@ -80,9 +83,6 @@ func InvokeContract(param vm.ReqInvokeCon, key *ecdsa.Key) (*vm.InvokeReturn, er
 		return nil, fmt.Errorf("方法调用失败：调用失败，请检查区块链及合约状态")
 	}
 
-	// insert into DB
-	glog.Info("put contract invoke record into DB")
-
 	var result = vm.InvokeReturn{
 		Param:     param.MethodParams,
 		IsSuccess: 1,
@@ -90,7 +90,6 @@ func InvokeContract(param vm.ReqInvokeCon, key *ecdsa.Key) (*vm.InvokeReturn, er
 		Methods:   param.MethodName,
 	}
 	return &result, nil
-
 }
 
 // ParseParam parse invoke param
@@ -112,6 +111,7 @@ func ParseParam(s string, inputs []abi.Argument) ([]interface{}, error) {
 //constructOutput construct invoke output
 func constructOutput(ABI abi.ABI, MethodName string, txInvoke *rpc.TxReceipt) (string, error) {
 	ol := len(ABI.Methods[MethodName].Outputs)
+	glog.Info(ol)
 	if ol == 1 {
 		var v interface{}
 		err := ABI.Unpack(&v, MethodName, common.FromHex(txInvoke.Ret))
@@ -135,6 +135,7 @@ func constructOutput(ABI abi.ABI, MethodName string, txInvoke *rpc.TxReceipt) (s
 		v = append(v, &t)
 	}
 	err := ABI.Unpack(&v, MethodName, common.FromHex(txInvoke.Ret))
+	glog.Info(len(common.FromHex(txInvoke.Ret)))
 	if err != nil {
 		glog.Error(err)
 		return "", err
@@ -162,7 +163,6 @@ func CompileContract(contractcode string) (*vm.CompileResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("合约编译失败")
 	}
-
 	var result = vm.CompileResult{
 		Abi:   res.Abi,
 		Bin:   res.Bin,

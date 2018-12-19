@@ -31,6 +31,7 @@ func Load(g *gin.Engine, mg *melody.Melody, mw ...gin.HandlerFunc) *gin.Engine {
 	//main router
 	apiv1 := g.Group("/api/v1")
 	apiv1.GET("/info", v1.GetContractInfo)
+	apiv1.POST("/startvote", v1.StartVote)
 
 	return g
 }

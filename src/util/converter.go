@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"reflect"
 	"time"
 
@@ -12,6 +13,88 @@ import (
 
 	"github.com/glog"
 )
+
+// Struct2String convert struct to string
+func Struct2String(st interface{}) string {
+	vt := reflect.TypeOf(st)
+	fmt.Println(vt)
+	vv := reflect.ValueOf(st)
+	fmt.Println(vv)
+	var str = ""
+	for i := 0; i < vt.NumField(); i++ {
+		f := vt.Field(i)
+		fmt.Println(f)
+		v := vv.Field(i)
+		fmt.Println(v)
+		chKey := f.Tag.Get("json")
+		fmt.Println("kind:", v.Kind())
+		switch v.Kind() {
+		case reflect.String:
+			if s, ok := v.Interface().(string); ok && s != "" {
+				str += "\"" + chKey + "\"" + ":" + "\"" + s + "\"" + ","
+			}
+		case reflect.Int:
+			if i, ok := v.Interface().(int); ok && i != 0 {
+				s := strconv.Itoa(i)
+				str += "\"" + chKey + "\"" + ":" + "\"" + s + "\"" + ","
+
+			}
+		case reflect.Uint64:
+			if u64, ok := v.Interface().(uint64); ok && u64 != 0 {
+				s := strconv.Itoa(int(u64))
+				str += "\"" + chKey + "\"" + ":" + "\"" + s + "\"" + ","
+
+			}
+		case reflect.Int64:
+			if i64, ok := v.Interface().(int64); ok && i64 != 0 {
+				s := strconv.Itoa(int(i64))
+				str += "\"" + chKey + "\"" + ":" + "\"" + s + "\"" + ","
+
+			}
+
+		case reflect.Uint:
+			if u, ok := v.Interface().(uint); ok && u != 0 {
+				s := strconv.Itoa(int(u))
+				str += "\"" + chKey + "\"" + ":" + "\"" + s + "\"" + ","
+
+			}
+
+		case reflect.Slice:
+			fmt.Println("slice: ", v.Interface())
+			l := v.Len()
+			stri := ""
+
+			for i := 0; i < l; i++ {
+				vi := v.Index(i).Interface()
+				vtype := reflect.TypeOf(vi)
+				fmt.Println(vtype.Name())
+
+				if vtype.Name() == "string" {
+					stri += "\"" + vi.(string) + "\"" + ","
+				} else if vtype.Name() == "uint" {
+					ss := strconv.Itoa(int(vi.(uint)))
+					stri += "\"" + ss + "\"" + ","
+				} else if vtype.Name() == "int" {
+					ss := strconv.Itoa(vi.(int))
+					stri += "\"" + ss + "\"" + ","
+				}
+
+			}
+			stri = stri[:len(stri)-1]
+			stri = "[" + stri + "]"
+			fmt.Println("stri:", stri)
+			str += "\"" + chKey + "\"" + ":" + stri + ","
+		default:
+			glog.Error("unsupport common query type: " + string(chKey))
+			return ""
+
+		}
+	}
+	str = str[:len(str)-1]
+	str = "{" + str + "}"
+	fmt.Println(str)
+	return str
+}
 
 // Struct2Map convert struct to map
 func Struct2Map(st interface{}) map[string]interface{} {
