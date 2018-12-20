@@ -17,6 +17,7 @@ type CompileResult struct {
 
 //InvokeReturn return after invoke
 type InvokeReturn struct {
+	Abi       string `json:"abi"`
 	Methods   string `json:"methods"`
 	Param     string `json:"param"`
 	IsSuccess int    `json:"is_success"`

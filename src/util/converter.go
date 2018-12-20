@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"time"
@@ -17,9 +18,7 @@ import (
 // Struct2String convert struct to string
 func Struct2String(st interface{}) string {
 	vt := reflect.TypeOf(st)
-	fmt.Println(vt)
 	vv := reflect.ValueOf(st)
-	fmt.Println(vv)
 	var str = ""
 	for i := 0; i < vt.NumField(); i++ {
 		f := vt.Field(i)
@@ -27,7 +26,6 @@ func Struct2String(st interface{}) string {
 		v := vv.Field(i)
 		fmt.Println(v)
 		chKey := f.Tag.Get("json")
-		fmt.Println("kind:", v.Kind())
 		switch v.Kind() {
 		case reflect.String:
 			if s, ok := v.Interface().(string); ok && s != "" {
@@ -60,14 +58,12 @@ func Struct2String(st interface{}) string {
 			}
 
 		case reflect.Slice:
-			fmt.Println("slice: ", v.Interface())
 			l := v.Len()
 			stri := ""
 
 			for i := 0; i < l; i++ {
 				vi := v.Index(i).Interface()
 				vtype := reflect.TypeOf(vi)
-				fmt.Println(vtype.Name())
 
 				if vtype.Name() == "string" {
 					stri += "\"" + vi.(string) + "\"" + ","
@@ -80,10 +76,11 @@ func Struct2String(st interface{}) string {
 				}
 
 			}
-			stri = stri[:len(stri)-1]
-			stri = "[" + stri + "]"
-			fmt.Println("stri:", stri)
-			str += "\"" + chKey + "\"" + ":" + stri + ","
+			if stri != "" {
+				stri = stri[:len(stri)-1]
+				stri = "[" + stri + "]"
+				str += "\"" + chKey + "\"" + ":" + stri + ","
+			}
 		default:
 			glog.Error("unsupport common query type: " + string(chKey))
 			return ""
@@ -933,4 +930,22 @@ func ABIchangeType(param []interface{}, arg interface{}, t string) []interface{}
 
 	param = append(param, arg.(string))
 	return param
+}
+
+// Byte32ToString convert [32]byte to string
+func Byte32ToString(b32 [32]byte) string {
+	var b []byte
+	for _, by := range b32 {
+		b = append(b, by)
+	}
+	n := bytes.IndexByte(b, 0)
+	return string(b32[:n])
+
+}
+
+// ByteToString convert [32]byte to string
+func ByteToString(b []byte) string {
+	n := bytes.IndexByte(b, 0)
+	return string(b[:n])
+
 }

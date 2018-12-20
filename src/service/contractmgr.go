@@ -11,7 +11,6 @@ import (
 	"github.com/glog"
 	"github.com/hyperchain/gosdk/abi"
 	"github.com/hyperchain/gosdk/account"
-	"github.com/hyperchain/gosdk/common"
 	"github.com/hyperchain/gosdk/rpc"
 	"github.com/hyperchain/gosdk/utils/ecdsa"
 	"github.com/tealeg/xlsx"
@@ -39,15 +38,8 @@ func InvokeContract(param vm.ReqInvokeCon, key *ecdsa.Key) (*vm.InvokeReturn, er
 		return nil, fmt.Errorf("合约编译失败")
 	}
 
-	glog.Info(len(cr.Abi))
-	glog.Info(cr.Abi)
 	abii := cr.Abi[0]
-	if cr.Abi[0] == "[]" {
-		abii = cr.Abi[1]
-	}
-	glog.Info(abii)
 	ABI, _ := abi.JSON(strings.NewReader(abii))
-	glog.Info(ABI)
 	var args []interface{}
 	if param.MethodParams == "{}" {
 		args = nil
@@ -76,17 +68,14 @@ func InvokeContract(param vm.ReqInvokeCon, key *ecdsa.Key) (*vm.InvokeReturn, er
 		glog.Error(stdErr)
 		return nil, fmt.Errorf("方法调用失败：调用失败，请检查区块链及合约状态")
 	}
-	glog.Info(txInvoke)
-	output, err := constructOutput(ABI, param.MethodName, txInvoke)
-	if err != nil {
-		glog.Error(err)
-		return nil, fmt.Errorf("方法调用失败：调用失败，请检查区块链及合约状态")
-	}
+
+	//p1, p2, err := constructOutput(ABI, param.MethodName, txInvoke.Ret)
 
 	var result = vm.InvokeReturn{
+		Abi:       abii,
 		Param:     param.MethodParams,
 		IsSuccess: 1,
-		Result:    output,
+		Result:    txInvoke.Ret,
 		Methods:   param.MethodName,
 	}
 	return &result, nil
@@ -109,46 +98,38 @@ func ParseParam(s string, inputs []abi.Argument) ([]interface{}, error) {
 }
 
 //constructOutput construct invoke output
-func constructOutput(ABI abi.ABI, MethodName string, txInvoke *rpc.TxReceipt) (string, error) {
-	ol := len(ABI.Methods[MethodName].Outputs)
-	glog.Info(ol)
-	if ol == 1 {
-		var v interface{}
-		err := ABI.Unpack(&v, MethodName, common.FromHex(txInvoke.Ret))
-		if err != nil {
-			glog.Error(err)
-			return "", err
-		}
+func constructOutput(ABI abi.ABI, MethodName string, Ret string) (int32, string, error) {
+	var p1 int32
+	var p2 []byte
+	res := []interface{}{&p1, &p2}
+	if sysErr := ABI.UnpackResult(&res, "insertVote", Ret); sysErr != nil {
+		glog.Info(sysErr)
+		return 0, "", sysErr
+	}
+	glog.Info(p1, string(p2))
+	return p1, string(p2), nil
 
-		m := make(map[string]interface{})
-		m[MethodName] = v
-		data, err := json.Marshal(m)
-		if err != nil {
-			glog.Error(err)
-			return "", err
-		}
-		return string(data), nil
-	}
-	var v []interface{}
-	for i := 0; i < ol; i++ {
-		var t interface{}
-		v = append(v, &t)
-	}
-	err := ABI.Unpack(&v, MethodName, common.FromHex(txInvoke.Ret))
-	glog.Info(len(common.FromHex(txInvoke.Ret)))
-	if err != nil {
-		glog.Error(err)
-		return "", err
-	}
+	//ol := len(ABI.Methods[MethodName].Outputs)
+	//var v []interface{}
+	//for i := 0; i < ol; i++ {
+	//	var t interface{}
+	//	v = append(v, &t)
+	//}
+	//err := ABI.Unpack(&v, MethodName, common.FromHex(txInvoke.Ret))
+	//if err != nil {
+	//	glog.Error(err)
+	//	return nil, err
+	//}
 
-	m := make(map[string]interface{})
-	m[MethodName] = v
-	data, err := json.Marshal(m)
-	if err != nil {
-		glog.Error(err)
-		return "", err
-	}
-	return string(data), nil
+	//return v, nil
+	//m := make(map[string]interface{})
+	//m[MethodName] = v
+	//data, err := json.Marshal(m)
+	//if err != nil {
+	//	glog.Error(err)
+	//	return "", err
+	//}
+	//return string(data), nil
 }
 
 // CompileContract compile contract on the chain
