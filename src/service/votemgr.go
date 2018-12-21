@@ -31,7 +31,7 @@ func GetContractCode() string {
 }
 
 // StartVote start  a vote
-func StartVote(voteinit *vm.VoteInit) (uint, bool) {
+func StartVote(voteinit *vm.VoteInit) (string, bool) {
 	//调用合约新建投票活动
 	// get contract addr and Code
 	contractcode := GetContractCode()
@@ -50,12 +50,12 @@ func StartVote(voteinit *vm.VoteInit) (uint, bool) {
 	if params == "" {
 
 		glog.Info("222")
-		return 0, false
+		return "", false
 	}
 	key, err := InitKey()
 	if err != nil {
 		glog.Info("333")
-		return 0, false
+		return "", false
 	}
 
 	retu, err := InvokeContract(vm.ReqInvokeCon{
@@ -65,23 +65,23 @@ func StartVote(voteinit *vm.VoteInit) (uint, bool) {
 		MethodParams: params,
 	}, key)
 	if err != nil {
-		return 0, false
+		return "", false
 	}
 	// 解析合约返回
 	ABI, _ := abi.JSON(strings.NewReader(retu.Abi))
 	p1, _, err := constructOutput(ABI, retu.Methods, retu.Result)
 	// 0 成功 1 失败
 	if p1 != 0 {
-		return 0, false
+		return "", false
 	}
 	glog.Info("新建投票成功，开始插入选项...")
 
 	b := AddOptions(voteinit.Options, vote.ID, key)
 	if !b {
-		return 0, false
+		return "", false
 	}
 	glog.Info("插入选项成功")
-	return 1, true
+	return vote.ID, true
 
 }
 
@@ -252,9 +252,10 @@ func GetVoteStatus(getvotestatus *vm.GetVoteStatus) (*model.Vote, bool) {
 	}
 	// 处理第二个合约返回
 	var p_ok2 int32
+	var p_oarray [][32]byte
 	var p_barray [][32]byte
 	var p_iarray []int32
-	res2 := []interface{}{&p_ok2, &p_barray, &p_iarray}
+	res2 := []interface{}{&p_ok2, &p_oarray, &p_barray, &p_iarray}
 	if sysErr := ABI.UnpackResult(&res2, "queryVoteOption", retu2.Result); sysErr != nil {
 		glog.Info(sysErr)
 		return nil, false
@@ -262,10 +263,15 @@ func GetVoteStatus(getvotestatus *vm.GetVoteStatus) (*model.Vote, bool) {
 	if p_ok2 == 1 {
 		return nil, false
 	}
+	glog.Info(len(p_oarray))
+	glog.Info(len(p_barray))
+	glog.Info(len(p_iarray))
 	var options []model.Option
 	for i := 0; i < len(p_iarray); i++ {
 		var option model.Option
+		optionid := util.ByteToString(p_oarray[i][:])
 		tal := util.ByteToString(p_barray[i][:])
+		option.ID = optionid
 		option.Total = uint(p_iarray[i])
 		option.Content = tal
 		options = append(options, option)

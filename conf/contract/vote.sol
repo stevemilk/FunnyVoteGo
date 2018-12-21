@@ -199,10 +199,11 @@ contract VoteContract {
      * @param id 字符串类型数据
      *
      * @return int32 返回代码
+     * @return bytes32[] 返回选项ID
      * @return bytes32[] 返回选项内容数组
      * @return int32[] 返回投票结果内容数组
      */
-    function queryVoteOption(bytes32 id) public returns(int32, bytes32[] , int32[] ) {
+    function queryVoteOption(bytes32 id) public returns(int32, bytes32[], bytes32[] , int32[] ) {
 
         VoteOption memory voteOption;
 
@@ -218,9 +219,9 @@ contract VoteContract {
                 _bytes32ArrayReturn.push(voteOption.content);
                 _intArrayReturn.push(voteOption.total);
             }
-            return(SUCCESS, _bytes32ArrayReturn, _intArrayReturn);
+            return(SUCCESS, optionIds, _bytes32ArrayReturn, _intArrayReturn);
         }
-        return (ERROR, _bytes32ArrayReturn, _intArrayReturn);
+        return (ERROR, _bytes32ArrayReturn, _bytes32ArrayReturn, _intArrayReturn);
     }
 
 /***********************************************************************************************************************

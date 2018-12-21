@@ -946,6 +946,10 @@ func Byte32ToString(b32 [32]byte) string {
 // ByteToString convert [32]byte to string
 func ByteToString(b []byte) string {
 	n := bytes.IndexByte(b, 0)
-	return string(b[:n])
+	if n == -1 {
+		return string(b[:])
+	} else {
+		return string(b[:n])
+	}
 
 }
