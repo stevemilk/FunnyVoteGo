@@ -40,12 +40,14 @@ contract VoteContract {
      * @param end_time 字符串类型数据
      * @param create_time 字符串类型数据
      * @param creator_id 整数类型数据
+     * @param option_ids 字符串数组类型数据
+     * @param option_contents 字符串数组整类型数据
      *
      * @return int32 返回代码
      * @return bytes 返回消息
      */
     function insertVote(bytes32 id, bytes32 title, bytes32 description, int32 select_type, bytes32 start_time, bytes32 end_time
-    , bytes32 create_time, bytes32 creator_id) public returns(int32, bytes) {
+    , bytes32 create_time, bytes32 creator_id, bytes32[] option_ids, bytes32[] option_contents) public returns(int32, bytes) {
 
         Vote memory newVote;
         uint insertedCount = 0;
@@ -68,6 +70,14 @@ contract VoteContract {
         _id2Vote[newVote.id] = newVote;
         // 累计插入数量
         insertedCount = insertedCount + 1;
+        
+        // 按主键插入多条投票选项内容
+        if(option_ids.length != 0){
+            uint length = option_ids.length;
+            for(uint i = 0; i < length; i++) {
+                insertVoteOption(option_ids[i], newVote.id, option_contents[i]);
+            }
+        }
 
         return (SUCCESS, "插入成功");
     }

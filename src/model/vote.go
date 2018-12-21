@@ -15,6 +15,22 @@ type Vote struct {
 	UserVoted   int      `json:"user_voted" des:"1:未投票 2:已投票"`
 }
 
+// Vote2 model
+type Vote2 struct {
+	ID             string   `json:"id"`
+	Title          string   `json:"title"`
+	Description    string   `json:"description"`
+	SelectType     int      `json:"select_type" des:"1:单选 2:多选"`
+	StartTime      string   `json:"start_time"`
+	EndTime        string   `json:"end_time"`
+	CreateTime     string   `json:"create_time"`
+	CreatorID      uint     `json:"creator_id"`
+	Status         int      `json:"status" des:"1:未开始 2:进行中 3:已结束"`
+	UserVoted      int      `json:"user_voted" des:"1:未投票 2:已投票"`
+	OptionIDs      []string `json:"option_ids"`
+	OptionContents []string `json:"option_contents"`
+}
+
 // Option  model
 type Option struct {
 	ID      string `json:"id"`

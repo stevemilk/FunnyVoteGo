@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	ContractAddress = "0x7850702ad5c90ed16568f54db6644209a1bdff2b"
+	ContractAddress = "0xa65f8ca82ca358ca79f6c0c98f10f8a8981731a1"
 )
 
 // GetContractCode get contract code
@@ -36,15 +36,22 @@ func StartVote(voteinit *vm.VoteInit) (string, bool) {
 	// get contract addr and Code
 	contractcode := GetContractCode()
 	// init params
-	vote := model.Vote{
-		ID:          util.StringUUID(),
-		Title:       voteinit.Title,
-		Description: voteinit.Description,
-		SelectType:  voteinit.SelectType,
-		StartTime:   voteinit.StartTime,
-		EndTime:     voteinit.EndTime,
-		CreateTime:  util.GetNowTimeString(),
-		CreatorID:   voteinit.CreatorID,
+	var optionids []string
+	for i := 0; i < len(voteinit.Options); i++ {
+		oid := util.StringUUID()
+		optionids = append(optionids, oid)
+	}
+	vote := model.Vote2{
+		ID:             util.StringUUID(),
+		Title:          voteinit.Title,
+		Description:    voteinit.Description,
+		SelectType:     voteinit.SelectType,
+		StartTime:      voteinit.StartTime,
+		EndTime:        voteinit.EndTime,
+		CreateTime:     util.GetNowTimeString(),
+		CreatorID:      voteinit.CreatorID,
+		OptionIDs:      optionids,
+		OptionContents: voteinit.Options,
 	}
 	params := util.Struct2String(vote)
 	if params == "" {
@@ -74,13 +81,13 @@ func StartVote(voteinit *vm.VoteInit) (string, bool) {
 	if p1 != 0 {
 		return "", false
 	}
-	glog.Info("新建投票成功，开始插入选项...")
+	glog.Info("新建投票成功")
 
-	b := AddOptions(voteinit.Options, vote.ID, key)
-	if !b {
-		return "", false
-	}
-	glog.Info("插入选项成功")
+	//b := AddOptions(voteinit.Options, vote.ID, key)
+	//if !b {
+	//	return "", false
+	//}
+	//glog.Info("插入选项成功")
 	return vote.ID, true
 
 }
