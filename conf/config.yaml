@@ -8,3 +8,9 @@ worker:
   max_worker_num:  100
 login:
   timeoutperiod: 1800
+db:
+  name: funnyvotego 
+  addr: localhost 
+  username: root
+  password: 123 
+  

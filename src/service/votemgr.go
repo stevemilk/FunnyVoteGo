@@ -15,12 +15,12 @@ import (
 )
 
 const (
-	ContractAddress = "0xa65f8ca82ca358ca79f6c0c98f10f8a8981731a1"
+	ContractAddress = "0xa83d15e1a65ec896b3a648ac77642e92998d2e08"
 )
 
 // GetContractCode get contract code
 func GetContractCode() string {
-	cbyte, err := ioutil.ReadFile("./conf/contract/vote.sol")
+	cbyte, err := ioutil.ReadFile("./conf/contract/vote1222.sol")
 
 	if err != nil {
 		return ""
@@ -177,6 +177,18 @@ func ChooseOption(chooseoption *vm.ChooseOption) bool {
 	if p2 != 0 {
 		return false
 	}
+
+	// hash 存mysql
+	_, b := model.CreateHashRecord(&model.HashRecord{
+		VoteID:        chooseoption.VoteID,
+		UserID:        chooseoption.UserID,
+		OptionID:      chooseoption.OptionID,
+		OptionContent: chooseoption.OptionContent,
+		TxHash:        retu2.TxHash,
+	})
+	if !b {
+		return false
+	}
 	glog.Info("2 finish")
 	return true
 
@@ -234,14 +246,16 @@ func GetVoteStatus(getvotestatus *vm.GetVoteStatus) (*model.Vote, bool) {
 	starttime, _ := strconv.Atoi(vote.StartTime)
 	endtime, _ := strconv.Atoi(vote.EndTime)
 	nowtime := int(time.Now().Unix())
-	if starttime < nowtime {
+	glog.Info("StartTime : ", starttime)
+	glog.Info("EndTime : ", endtime)
+	glog.Info("NowTime : ", nowtime)
+	if starttime > nowtime {
 		vote.Status = 1
-	} else if endtime < starttime {
+	} else if endtime < nowtime {
 		vote.Status = 3
 	} else {
 		vote.Status = 2
 	}
-
 	glog.Infof("vote: %+v", vote)
 	glog.Info("1 finish")
 	// 第二个合约 获得选项内容
@@ -296,7 +310,7 @@ func GetVoteStatus(getvotestatus *vm.GetVoteStatus) (*model.Vote, bool) {
 	retu3, err := InvokeContract(vm.ReqInvokeCon{
 		ContractAddr: ContractAddress,
 		ContractCode: contractcode,
-		MethodName:   "queryVoteResult",
+		MethodName:   "queryUserVoteResult",
 		MethodParams: params3,
 	}, key)
 	if err != nil {
@@ -306,7 +320,7 @@ func GetVoteStatus(getvotestatus *vm.GetVoteStatus) (*model.Vote, bool) {
 	var p_ok3 int32
 	var p_bo bool
 	res3 := []interface{}{&p_ok3, &p_bo}
-	if sysErr := ABI.UnpackResult(&res3, "queryVoteResult", retu3.Result); sysErr != nil {
+	if sysErr := ABI.UnpackResult(&res3, "queryUserVoteResult", retu3.Result); sysErr != nil {
 		glog.Info(sysErr)
 		return nil, false
 	}
@@ -318,4 +332,66 @@ func GetVoteStatus(getvotestatus *vm.GetVoteStatus) (*model.Vote, bool) {
 	}
 	glog.Info("3 finish")
 	return &vote, true
+}
+
+func GetVoteRecord(voteid string) ([]model.VoteRecord, bool) {
+	contractcode := GetContractCode()
+	key, err := InitKey()
+	if err != nil {
+		glog.Info("333")
+		return nil, false
+
+	}
+
+	// 第一个合约 获取投票信息判断活动时间
+	params := util.Struct2String(model.Vote{
+		ID: voteid,
+	})
+	retu, err := InvokeContract(vm.ReqInvokeCon{
+		ContractAddr: ContractAddress,
+		ContractCode: contractcode,
+		MethodName:   "queryVoteRecord",
+		MethodParams: params,
+	}, key)
+	glog.Info(err)
+	if err != nil {
+		return nil, false
+
+	}
+	// 处理第一个合约返回
+	ABI, _ := abi.JSON(strings.NewReader(retu.Abi))
+	var p_ok int32
+	var p_idarray [][32]byte
+	var p_rarray [][32]byte
+	res := []interface{}{&p_ok, &p_idarray, &p_rarray}
+	if sysErr := ABI.UnpackResult(&res, "queryVoteRecord", retu.Result); sysErr != nil {
+		glog.Info(sysErr)
+		return nil, false
+	}
+	if p_ok == 1 {
+		// 无记录也返回1
+		return []model.VoteRecord{}, true
+	}
+
+	var records []model.VoteRecord
+	for i := 0; i < len(p_idarray); i++ {
+		var record model.VoteRecord
+		record.UserID = util.ByteToString(p_idarray[i][:])
+		record.OptionContent = util.ByteToString(p_rarray[i][:])
+		userid, err := strconv.Atoi(record.UserID)
+		if err != nil {
+			return nil, false
+		}
+		hr, b := model.GetHashRecord(util.Struct2Map(model.HashRecord{
+			VoteID: voteid,
+			UserID: uint(userid),
+		}))
+		if !b {
+			return nil, false
+		}
+		record.TxHash = hr.TxHash
+
+		records = append(records, record)
+	}
+	return records, true
 }

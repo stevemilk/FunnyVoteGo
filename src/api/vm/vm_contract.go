@@ -22,6 +22,7 @@ type InvokeReturn struct {
 	Param     string `json:"param"`
 	IsSuccess int    `json:"is_success"`
 	Result    string `json:"result"`
+	TxHash    string `json:"txhash"`
 }
 
 //ReqCompileParam to be compiled info

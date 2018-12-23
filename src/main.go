@@ -3,6 +3,7 @@ package main
 import (
 	"FunnyVoteGo/src/api/router"
 	"FunnyVoteGo/src/config"
+	"FunnyVoteGo/src/model"
 	"flag"
 	"net/http"
 	"runtime"
@@ -34,6 +35,8 @@ func main() {
 	g := gin.New()
 
 	middlewares := []gin.HandlerFunc{}
+
+	model.InitDataBase()
 
 	// Routes.
 	router.Load(

@@ -1,5 +1,7 @@
 package model
 
+import "github.com/glog"
+
 // Vote model
 type Vote struct {
 	ID          string   `json:"id"`
@@ -48,4 +50,43 @@ type UserOption struct {
 	UserID        uint   `json:"user_id"`
 	Publickey     string `json:"public_key"`
 	CreateTime    string `json:"create_time"`
+}
+
+// VoteRecord  model
+type VoteRecord struct {
+	UserID        string `json:"user_id"`
+	OptionContent string `json:"option_content"`
+	TxHash        string `json:"tx_hash"`
+}
+
+// HashRecord  model
+type HashRecord struct {
+	ID            uint   `json:"id"`
+	VoteID        string `json:"vote_id"`
+	UserID        uint   `json:"user_id"`
+	OptionID      string `json:"option_id"`
+	OptionContent string `json:"option_content"`
+	TxHash        string `json:"tx_hash"`
+}
+
+// CreateHashRecord create hash record
+func CreateHashRecord(hr *HashRecord) (*HashRecord, bool) {
+	err := db.Create(&hr).Error
+	if err != nil {
+		glog.Errorf("CreateHashRecord : %v", err)
+		return nil, false
+	}
+	return hr, true
+}
+
+// GetHashRecord get hash record
+func GetHashRecord(maps interface{}) (*HashRecord, bool) {
+	var hr HashRecord
+	err := db.Model(&HashRecord{}).Where(maps).Find(&hr).Error
+	if err != nil {
+		glog.Errorf("GetHashRecord : %v", err)
+		return nil, false
+	}
+	return &hr, true
+
 }

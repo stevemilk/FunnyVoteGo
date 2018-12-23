@@ -77,6 +77,7 @@ func InvokeContract(param vm.ReqInvokeCon, key *ecdsa.Key) (*vm.InvokeReturn, er
 		IsSuccess: 1,
 		Result:    txInvoke.Ret,
 		Methods:   param.MethodName,
+		TxHash:    txInvoke.TxHash,
 	}
 	return &result, nil
 }

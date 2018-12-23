@@ -2,6 +2,7 @@ package v1
 
 import (
 	"FunnyVoteGo/src/api/vm"
+	"FunnyVoteGo/src/model"
 	"FunnyVoteGo/src/service"
 	"net/http"
 
@@ -66,5 +67,21 @@ func Vote(c *gin.Context) {
 	}
 
 	vm.MakeSuccess(c, http.StatusOK, "success")
+	return
+}
+
+// GetVoteRecord get records of vote
+func GetVoteRecord(c *gin.Context) {
+	var voteid vm.VoteID
+	if err := c.ShouldBind(&voteid); err != nil {
+		vm.MakeFail(c, http.StatusBadRequest, "参数错误")
+		return
+	}
+	records, b := service.GetVoteRecord(voteid.VoteID)
+	if !b {
+		vm.MakeSuccess(c, http.StatusOK, []model.VoteRecord{})
+		return
+	}
+	vm.MakeSuccess(c, http.StatusOK, records)
 	return
 }

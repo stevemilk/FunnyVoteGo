@@ -25,3 +25,8 @@ type GetVoteStatus struct {
 	UserID    uint   `json:"user_id" form:"user_id" binding:"required"`
 	Publickey string `json:"public_bkey" form:"public_key"`
 }
+
+// VoteID  model
+type VoteID struct {
+	VoteID string `json:"vote_id" form:"vote_id" binding:"required"`
+}
